@@ -1,0 +1,45 @@
+SGLang Paper Summary (arXiv:2312.07104v2)
+
+Source:
+https://arxiv.org/html/2312.07104v2
+
+1) What problem it solves
+SGLang is designed for structured LLM applications where one user task includes
+multiple dependent model calls, branching logic, tool usage, constrained outputs
+(for example JSON/regex), and multimodal inputs. In these pipelines, baseline
+implementations often waste compute on repeated prefixes, have high decoding
+overhead for structured constraints, and suffer from orchestration complexity.
+
+2) Core idea
+SGLang is a co-design of:
+- a frontend language/API for expressing structured generation programs;
+- a runtime with system-level optimizations specialized for these programs.
+
+This allows programmability and performance improvements at the same time.
+
+3) Main technical contributions
+- RadixAttention:
+  KV cache is organized in a radix tree with LRU-style management to maximize
+  prefix sharing across requests/calls and reduce redundant prefill work.
+
+- Compressed FSM decoding:
+  Structured constraints (regex/formats) are compiled to finite-state machines.
+  Deterministic transition chains are compressed, which reduces per-token
+  overhead during constrained decoding.
+
+- Speculative execution for API models:
+  For API-based black-box models, SGLang speculatively generates beyond immediate
+  stopping points and reuses useful continuation tokens in following calls,
+  reducing repeated latency/cost in multi-step workflows.
+
+4) Practical impact
+In evaluated structured and multimodal workloads, the paper reports substantial
+throughput/latency gains from:
+- better KV reuse,
+- more efficient constrained decoding,
+- runtime scheduling informed by frontend program structure.
+
+5) Short conclusion
+SGLang should be understood as a full stack (language + runtime), where the key
+speedups come from cache reuse (RadixAttention), decoding optimization
+(compressed FSM), and API workflow acceleration (speculative execution).
